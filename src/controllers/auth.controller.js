@@ -7,15 +7,14 @@ import jwt from 'jsonwebtoken';
 
 import { TOKEN_SECRET } from '../config.js';
 
-export const register = async (req,res)=> {
-    const {email,password,username} = req.body
-    try{
-
+export const register = async (req, res) => {
+    const {email, password, username} = req.body
+    try {
         const userFound = await User.findOne({email})
         if(userFound) 
-        return res.status(404).json(["The email already exists"]);
+            return res.status(400).json(["The email already exists"]);
 
-        const passwordHash = await bcrypt.hash(password,10);
+        const passwordHash = await bcrypt.hash(password, 10);
 
         const newUser = new User({
             username,
@@ -23,24 +22,28 @@ export const register = async (req,res)=> {
             password: passwordHash,
         });
 
-
-
         const userSaved = await newUser.save();
-        const token = await createAccessToken({id:userSaved._id});
-        res.cookie('token',token);
+        const token = await createAccessToken({id: userSaved._id});
+        
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none'
+        });
+        
         res.json({
-            id : userSaved._id,
-            username : userSaved.username,
-            email : userSaved.email,
-            createdAt:userSaved.createdAt,
-            updatedAt:userSaved.updatedAt,
+            id: userSaved._id,
+            username: userSaved.username,
+            email: userSaved.email,
+            createdAt: userSaved.createdAt,
+            updatedAt: userSaved.updatedAt,
         });
 
-    }catch(err){
-        res.status(500).json({message:err.message})
+    } catch(err) {
+        console.error('Error in register function:', err);
+        res.status(500).json({message: 'An error occurred during registration'})
     }
-};
-
+};      
 
 export const login = async (req,res)=> {
     const {email,password} = req.body
