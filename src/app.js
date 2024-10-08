@@ -7,11 +7,10 @@ import cors from 'cors';
 
 
 const App = express();
-App.use(cors({
-    origin: ['http://localhost:5173',""],
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://backend-notas.vercel.app'], // Acepta peticiones desde localhost y el dominio de Vercel
     credentials: true,
-  optionsSuccessStatus: 200,
-}));
+  }));
 App.use(morgan('dev'));
 App.use(express.json());
 App.use(cookieParser());
